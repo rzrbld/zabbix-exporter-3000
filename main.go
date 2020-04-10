@@ -10,7 +10,6 @@ import (
   "github.com/prometheus/client_golang/prometheus/promhttp"
 
 	cnf "github.com/rzrbld/zabbix-exporter-3000/config"
-	zbx "github.com/rzrbld/zabbix-exporter-3000/zabbix"
 	hdl "github.com/rzrbld/zabbix-exporter-3000/handlers"
 )
 
@@ -22,12 +21,6 @@ func main() {
 	fmt.Println("Author   : rzrbld")
 	fmt.Println("License  : MIT")
 	fmt.Println("Git-repo : https://github.com/rzrbld/zabbix-exporter-3000 \033[m \r\n")
-
-  _ ,err := zbx.Connect()
-  if err != nil {
-		fmt.Println(err)
-	}
-
 
 	app := iris.New()
 

@@ -1,13 +1,17 @@
 package zabbix
 
 import (
+  "encoding/json"
+  "strings"
   "crypto/tls"
-	"fmt"
 	"log"
 	"net/http"
 	"github.com/cavaliercoder/go-zabbix"
   cnf "github.com/rzrbld/zabbix-exporter-3000/config"
 )
+
+var Session, err = Connect()
+var Query *zabbix.Request
 
 func Connect() (*zabbix.Session, error) {
   client := &http.Client{
@@ -31,6 +35,16 @@ func Connect() (*zabbix.Session, error) {
 		panic(err)
 	}
 
-	fmt.Printf("Connected to Zabbix API v%s \r\n", version)
+  authToken := session.AuthToken()
+  log.Print("Auth: ",authToken)
+  strRequestWithAuth := strings.Replace(cnf.Query, "%auth%", authToken, -1)
+
+  // fmt.Print(cnf.Query)
+  err = json.Unmarshal([]byte(strRequestWithAuth), &Query)
+  if err != nil {
+		log.Print("ERROR While convert request to JSON: ",err)
+  }
+
+	log.Print("Connected to Zabbix API v%s \r\n", version)
   return session, err
 }
