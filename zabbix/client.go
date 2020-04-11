@@ -38,8 +38,7 @@ func Connect() (*zabbix.Session, error) {
   authToken := session.AuthToken()
   log.Print("Auth: ", authToken)
   strRequestWithAuth := strings.Replace(cnf.Query, "%auth-token%", authToken, -1)
-  log.Print("Query: ", strRequestWithAuth)
-  log.Print("RAW-Query: ", cnf.Query)
+  log.Print("Query: ", cnf.Query)
 
   // fmt.Print(cnf.Query)
   err = json.Unmarshal([]byte(strRequestWithAuth), &Query)

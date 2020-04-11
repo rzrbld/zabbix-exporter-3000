@@ -15,6 +15,7 @@ var (
   // or use ZE3000_STRICT_METRIC_WKAROUND = true it adds _%num% at the end of metric name
 	StrictRegister, _     = strconv.ParseBool(getEnv("ZE3000_STRICT_METRIC_REG", "true"))
 	RandomizeNames, _     = strconv.ParseBool(getEnv("ZE3000_STRICT_METRIC_WKAROUND", "true"))
+	SingleMetricName, _     = strconv.ParseBool(getEnv("ZE3000_SINGLE_METRIC_NAME", "true"))
 	MainHostPort   = getEnv("ZE3000_HOST_PORT", "localhost:8080")
 	MetricNamespace     = getEnv("ZE3000_METRIC_NAMESAPCE", "zbx")
 	MetricSubsystem     = getEnv("ZE3000_METRIC_SUBSYSTEM", "subsystem")

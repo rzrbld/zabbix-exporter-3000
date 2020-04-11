@@ -15,4 +15,5 @@
 # vendor/
 main
 runc.sh
+rund.sh
 zabbix_session

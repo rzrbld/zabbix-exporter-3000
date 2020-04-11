@@ -20,8 +20,7 @@ var labelsSlicePrometheus []string
 var labelsSliceComplex []string
 // labels average
 var labelsSliceAvg []string
-
-// var itemsMetric *prometheus.GaugeVec
+var itemsMetric *prometheus.GaugeVec
 var metricsSlice []*prometheus.GaugeVec
 
 func cleanUpName(name string)(string){
@@ -49,28 +48,37 @@ func buildMetrics() {
   log.Print("labels_average:", labelsSliceAvg)
 
   var results = queryZabbix()
-
+  log.Print("Zabbix_len:", len(results))
   for k, result := range results {
     //clean up metric name
-    cleanName := cleanUpName(result[cnf.MetricNameField].(string))
-    fullName := cnf.MetricNamePrefix+"_"+cleanName
-    if cnf.RandomizeNames {
-      fullName = cnf.MetricNamePrefix+"_"+cleanName+"_"+strconv.Itoa(k)
+    fullName := cnf.MetricNamePrefix
+    if cnf.MetricNameField != "" {
+      cleanName := cleanUpName(result[cnf.MetricNameField].(string))
+      fullName = cnf.MetricNamePrefix+"_"+cleanName
+      if cnf.RandomizeNames {
+        fullName = cnf.MetricNamePrefix+"_"+cleanName+"_"+strconv.Itoa(k)
+      }
     }
 
 
-    var itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+    itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
       Namespace: cnf.MetricNamespace,
     	Subsystem: cnf.MetricSubsystem,
     	Name: fullName,
     	Help: result[cnf.MetricHelpField].(string),
-    }, labelsSlicePrometheus)
+    },labelsSlicePrometheus)
     metricsSlice = append(metricsSlice,itemsMetric)
-    if cnf.StrictRegister {
-      prometheus.MustRegister(itemsMetric)
-    }else{
-      prometheus.Register(itemsMetric)
+    if !cnf.SingleMetricName {
+      if cnf.StrictRegister {
+        prometheus.MustRegister(itemsMetric)
+      }else{
+        prometheus.Register(itemsMetric)
+      }
     }
+  }
+  log.Print("Metrics_len:", len(metricsSlice))
+  if cnf.SingleMetricName {
+    prometheus.MustRegister(itemsMetric)
   }
 }
 
@@ -130,8 +138,18 @@ func RecordMetrics() {
           }
         }
 
-        f, _ := strconv.ParseFloat(result[cnf.MetricValue].(string), 64)
-        metricsSlice[resKey].With(labelsWithValues).Set(float64(f))
+        var f float64
+        f = float64(0)
+        if result[cnf.MetricValue] != nil {
+          f, _ = strconv.ParseFloat(result[cnf.MetricValue].(string), 64)
+        }
+        log.Print("LENGTH >>>>>>>>>>",len(metricsSlice))
+        log.Print("KEY >>>>>>>>>>",resKey)
+        if cnf.SingleMetricName {
+          itemsMetric.With(labelsWithValues).Set(f)
+        } else {
+          metricsSlice[resKey].With(labelsWithValues).Set(f)
+        }
     	}
 
       time.Sleep(time.Duration(sourceRefreshSec) * time.Second)
