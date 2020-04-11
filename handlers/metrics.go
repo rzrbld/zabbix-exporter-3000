@@ -115,7 +115,7 @@ func buildMetrics() {
   }
 
 
-	if cnf.SingleMetricName {
+	if cnf.SingleMetric {
     fullName := cnf.MetricNamePrefix
 
     itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -150,7 +150,7 @@ func buildMetrics() {
   }
 
   log.Print("Number of bject getting from Zabbix    : ", len(results))
-  if cnf.SingleMetricName {
+  if cnf.SingleMetric {
     log.Print("Number of metrics that will be produced: ", 1)
   } else {
     log.Print("Number of metrics that will be produced: ", len(metricsMap))
@@ -222,7 +222,7 @@ func RecordMetrics() {
 					f, _ = strconv.ParseFloat(result[cnf.MetricValue].(string), 64)
 				}
 
-				if cnf.SingleMetricName {
+				if cnf.SingleMetric {
 					itemsMetric.With(labelsWithValues).Set(f)
 				} else {
           cleanName := cleanUpName(result[cnf.MetricNameField].(string))
