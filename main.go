@@ -1,13 +1,13 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
 	"github.com/kataras/iris/v12"
 
+	prometheusMiddleware "github.com/iris-contrib/middleware/prometheus"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
-	prometheusMiddleware "github.com/iris-contrib/middleware/prometheus"
-  "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	cnf "github.com/rzrbld/zabbix-exporter-3000/config"
 	hdl "github.com/rzrbld/zabbix-exporter-3000/handlers"
@@ -24,18 +24,17 @@ func main() {
 
 	app := iris.New()
 
-	app.Logger().SetLevel("debug")
+	app.Logger().SetLevel("INFO")
 
 	app.Use(recover.New())
 	app.Use(logger.New())
 
-  // prometheus metrics
+	// prometheus metrics
 
 	m := prometheusMiddleware.New("ze3000", 0.3, 1.2, 5.0)
 	hdl.RecordMetrics()
 	app.Use(m.ServeHTTP)
 	app.Get("/metrics", iris.FromStd(promhttp.Handler()))
-
 
 	app.Get("/liveness", func(ctx iris.Context) {
 		ctx.WriteString("ok")

@@ -1,158 +1,225 @@
 package handlers
 
 import (
-	"time"
-  "encoding/json"
-  "strconv"
-  "strings"
-  "log"
-  "regexp"
+	"encoding/json"
 	"github.com/prometheus/client_golang/prometheus"
-  zbx "github.com/rzrbld/zabbix-exporter-3000/zabbix"
-  cnf "github.com/rzrbld/zabbix-exporter-3000/config"
+	cnf "github.com/rzrbld/zabbix-exporter-3000/config"
+	zbx "github.com/rzrbld/zabbix-exporter-3000/zabbix"
+	"log"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var sourceRefreshSec, _ = strconv.Atoi(cnf.SourceRefresh)
 var labelsSliceRaw = strings.Split(cnf.MetricLabels, ",")
+
 // labels in prom format
 var labelsSlicePrometheus []string
+
 // labels with path "a>b"
 var labelsSliceComplex []string
+
 // labels average
 var labelsSliceAvg []string
+var rawMetricNames []string
+var uniqMetricNames []string
+var rawMetricDesc []string
+var uniqMetricDesc []string
 var itemsMetric *prometheus.GaugeVec
-var metricsSlice []*prometheus.GaugeVec
+var metricsMap = make(map[string]*prometheus.GaugeVec, 1000)
 
-func cleanUpName(name string)(string){
-  reg, err := regexp.Compile("[^a-zA-Z0-9]+")
-  if err != nil {
-     log.Fatal(err)
-  }
-  cleanName := reg.ReplaceAllString(strings.ToLower(name), "")
-  return cleanName
+func cleanUpName(name string) string {
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	if err != nil {
+		log.Fatal(err)
+	}
+	cleanName := reg.ReplaceAllString(strings.ToLower(name), "")
+	return cleanName
+}
+
+func uniqueSlice(intSlice []string) []string {
+    keys := make(map[string]bool)
+    list := []string{}
+    for _, entry := range intSlice {
+        if _, value := keys[entry]; !value {
+            keys[entry] = true
+            list = append(list, entry)
+        }
+    }
+    return list
+}
+
+func registerMetric(metric *prometheus.GaugeVec){
+    if cnf.StrictRegister {
+      prometheus.MustRegister(metric)
+    } else {
+      prometheus.Register(metric)
+    }
 }
 
 func buildMetrics() {
-  for _, vl := range labelsSliceRaw{
-    if strings.Contains(vl, ">") {
-      labelsSlicePrometheus = append(labelsSlicePrometheus, strings.Replace(vl, ">", "_", -1))
-      labelsSliceComplex = append(labelsSliceComplex, vl)
-    }else{
-      labelsSlicePrometheus = append(labelsSlicePrometheus, vl)
-      labelsSliceAvg = append(labelsSliceAvg, vl)
+	for _, vl := range labelsSliceRaw {
+		if strings.Contains(vl, ">") {
+			labelsSlicePrometheus = append(labelsSlicePrometheus, strings.Replace(vl, ">", "_", -1))
+			labelsSliceComplex = append(labelsSliceComplex, vl)
+		} else {
+			labelsSlicePrometheus = append(labelsSlicePrometheus, vl)
+			labelsSliceAvg = append(labelsSliceAvg, vl)
+		}
+	}
+
+	log.Print("labels_prom   :", labelsSlicePrometheus)
+	log.Print("labels_complex:", labelsSliceComplex)
+	log.Print("labels_average:", labelsSliceAvg)
+
+	var results = queryZabbix()
+	log.Print("Zabbix_len:", len(results))
+
+  if cnf.MetricNameField != "" {
+    for k, result := range results {
+      cleanName := cleanUpName(result[cnf.MetricNameField].(string))
+      rawMetricNames = append(rawMetricNames, cleanName)
+      if result[cnf.MetricHelpField] != nil {
+        if result[cnf.MetricHelpField].(string) != "" {
+          rawMetricDesc = append(rawMetricDesc, result[cnf.MetricHelpField].(string))
+        }else{
+          rawMetricDesc = append(rawMetricDesc, "NA_"+strconv.Itoa(k))
+        }
+      } else {
+        rawMetricDesc = append(rawMetricDesc, "NA")
+      }
     }
   }
 
-  log.Print("labels_prom   :", labelsSlicePrometheus)
-  log.Print("labels_complex:", labelsSliceComplex)
-  log.Print("labels_average:", labelsSliceAvg)
+  log.Println(rawMetricNames)
+  log.Println(rawMetricDesc)
+  uniqMetricNames := uniqueSlice(rawMetricNames)
+  uniqMetricDesc := uniqueSlice(rawMetricDesc)
 
-  var results = queryZabbix()
-  log.Print("Zabbix_len:", len(results))
-  for k, result := range results {
-    //clean up metric name
-    fullName := cnf.MetricNamePrefix
-    if cnf.MetricNameField != "" {
-      cleanName := cleanUpName(result[cnf.MetricNameField].(string))
-      fullName = cnf.MetricNamePrefix+"_"+cleanName
-      if cnf.RandomizeNames {
-        fullName = cnf.MetricNamePrefix+"_"+cleanName+"_"+strconv.Itoa(k)
+  log.Println(uniqMetricNames)
+  log.Println(uniqMetricDesc)
+
+  if(len(uniqMetricNames) != len(uniqMetricDesc)){
+    log.Print("WARNING: Number of Metrics and Description not equal")
+
+    if(len(uniqMetricNames) < len(uniqMetricDesc)){
+      log.Fatal("ERROR: Insufficient uniq Metrics")
+    }else{
+      log.Print("WARNING: I try to heal this by populating NA")
+      for k, _ := range uniqMetricNames{
+        uniqMetricDesc[k] = "NA"
       }
     }
+  }
 
+	log.Print("Metrics_len:", len(metricsMap))
+
+	if cnf.SingleMetricName {
+    fullName := cnf.MetricNamePrefix
 
     itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
       Namespace: cnf.MetricNamespace,
-    	Subsystem: cnf.MetricSubsystem,
-    	Name: fullName,
-    	Help: result[cnf.MetricHelpField].(string),
-    },labelsSlicePrometheus)
-    metricsSlice = append(metricsSlice,itemsMetric)
-    if !cnf.SingleMetricName {
-      if cnf.StrictRegister {
-        prometheus.MustRegister(itemsMetric)
-      }else{
-        prometheus.Register(itemsMetric)
+      Subsystem: cnf.MetricSubsystem,
+      Name:      fullName,
+      Help:      cnf.SingleMetricHelp,
+    }, labelsSlicePrometheus)
+
+    registerMetric(itemsMetric)
+	}else{
+    for k, name := range uniqMetricNames {
+      //clean up metric name
+      fullName := cnf.MetricNamePrefix
+      if cnf.MetricNameField != "" {
+        fullName = cnf.MetricNamePrefix + "_" + name
       }
+
+      itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+        Namespace: cnf.MetricNamespace,
+        Subsystem: cnf.MetricSubsystem,
+        Name:      fullName,
+        Help:      uniqMetricDesc[k],
+      }, labelsSlicePrometheus)
+
+      metricsMap[name] = itemsMetric
+    }
+
+    for _, metric := range metricsMap {
+      registerMetric(metric)
     }
   }
-  log.Print("Metrics_len:", len(metricsSlice))
-  if cnf.SingleMetricName {
-    prometheus.MustRegister(itemsMetric)
-  }
 }
 
-func queryZabbix()([]map[string]interface{}) {
-  items, err := zbx.Session.Do(zbx.Query)
-  if err != nil {
-    log.Fatal("ERROR While Do request: ",err)
-  }
+func queryZabbix() []map[string]interface{} {
+	items, err := zbx.Session.Do(zbx.Query)
+	if err != nil {
+		log.Fatal("ERROR While Do request: ", err)
+	}
 
-  var results []map[string]interface{}
-  json.Unmarshal(items.Body, &results)
-  return results
+	var results []map[string]interface{}
+	json.Unmarshal(items.Body, &results)
+	return results
 }
-
 
 func RecordMetrics() {
-  buildMetrics()
+	buildMetrics()
 	go func() {
 		for {
-      var results = queryZabbix()
-      for resKey, result := range results {
+			var results = queryZabbix()
+			for _, result := range results {
 
-        labelsWithValues := make(map[string]string)
+				labelsWithValues := make(map[string]string)
 
+				if len(labelsSliceAvg) > 0 {
+					for _, vAvg := range labelsSliceAvg {
+						if result[vAvg] != nil {
+							labelsWithValues[vAvg] = result[vAvg].(string)
+						} else {
+							labelsWithValues[vAvg] = "NA"
+						}
+					}
+				}
 
-        if len(labelsSliceAvg) > 0 {
-          for _, vAvg := range labelsSliceAvg{
-            if result[vAvg] != nil {
-              labelsWithValues[vAvg] = result[vAvg].(string)
-            }else{
-              labelsWithValues[vAvg] = "NA"
-            }
-          }
-        }
+				if len(labelsSliceComplex) > 0 {
+					for _, vCplx := range labelsSliceComplex {
 
-        if len(labelsSliceComplex) > 0 {
-          for _, vCplx := range labelsSliceComplex{
+						var promLabel = strings.Replace(vCplx, ">", "_", -1)
+						var path = strings.Split(vCplx, ">")
+						if result[path[0]] != nil {
+							if len(result[path[0]].([]interface{})) > 0 {
+								for _, cplx := range result[path[0]].([]interface{}) {
+									subCplx := cplx.(map[string]interface{})
+									if subCplx[path[1]] != nil {
+										labelsWithValues[promLabel] = subCplx[path[1]].(string)
+									} else {
+										labelsWithValues[promLabel] = "NA"
+									}
+								}
+							} else {
+								labelsWithValues[promLabel] = "NA"
+							}
+						} else {
+							labelsWithValues[promLabel] = "NA"
+						}
+					}
+				}
 
-            var promLabel = strings.Replace(vCplx, ">", "_", -1)
-            var path = strings.Split(vCplx, ">")
-            if result[path[0]] != nil {
-              if(len(result[path[0]].([]interface{})) > 0){
-                for _,cplx := range result[path[0]].([]interface{}) {
-                  subCplx := cplx.(map[string]interface{})
-                  if subCplx[path[1]] != nil {
-      	             labelsWithValues[promLabel] = subCplx[path[1]].(string)
-                  } else {
-                     labelsWithValues[promLabel] = "NA"
-                  }
-      		      }
-              } else {
-                  labelsWithValues[promLabel] = "NA"
-              }
-            } else {
-              labelsWithValues[promLabel] = "NA"
-            }
-          }
-        }
+				var f float64
+				f = float64(0)
+				if result[cnf.MetricValue] != nil {
+					f, _ = strconv.ParseFloat(result[cnf.MetricValue].(string), 64)
+				}
 
-        var f float64
-        f = float64(0)
-        if result[cnf.MetricValue] != nil {
-          f, _ = strconv.ParseFloat(result[cnf.MetricValue].(string), 64)
-        }
-        log.Print("LENGTH >>>>>>>>>>",len(metricsSlice))
-        log.Print("KEY >>>>>>>>>>",resKey)
-        if cnf.SingleMetricName {
-          itemsMetric.With(labelsWithValues).Set(f)
-        } else {
-          metricsSlice[resKey].With(labelsWithValues).Set(f)
-        }
-    	}
+				if cnf.SingleMetricName {
+					itemsMetric.With(labelsWithValues).Set(f)
+				} else {
+          cleanName := cleanUpName(result[cnf.MetricNameField].(string))
+					metricsMap[cleanName].With(labelsWithValues).Set(f)
+				}
+			}
 
-      time.Sleep(time.Duration(sourceRefreshSec) * time.Second)
+			time.Sleep(time.Duration(sourceRefreshSec) * time.Second)
 		}
 	}()
 }

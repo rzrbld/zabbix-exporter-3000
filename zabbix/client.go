@@ -1,20 +1,20 @@
 package zabbix
 
 import (
-  "encoding/json"
-  "strings"
-  "crypto/tls"
+	"crypto/tls"
+	"encoding/json"
+	"github.com/cavaliercoder/go-zabbix"
+	cnf "github.com/rzrbld/zabbix-exporter-3000/config"
 	"log"
 	"net/http"
-	"github.com/cavaliercoder/go-zabbix"
-  cnf "github.com/rzrbld/zabbix-exporter-3000/config"
+	"strings"
 )
 
 var Session, err = Connect()
 var Query *zabbix.Request
 
 func Connect() (*zabbix.Session, error) {
-  client := &http.Client{
+	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: cnf.SslSkip}}}
@@ -35,17 +35,17 @@ func Connect() (*zabbix.Session, error) {
 		panic(err)
 	}
 
-  authToken := session.AuthToken()
-  log.Print("Auth: ", authToken)
-  strRequestWithAuth := strings.Replace(cnf.Query, "%auth-token%", authToken, -1)
-  log.Print("Query: ", cnf.Query)
+	authToken := session.AuthToken()
+	log.Print("Auth: ", authToken)
+	strRequestWithAuth := strings.Replace(cnf.Query, "%auth-token%", authToken, -1)
+	log.Print("Query: ", cnf.Query)
 
-  // fmt.Print(cnf.Query)
-  err = json.Unmarshal([]byte(strRequestWithAuth), &Query)
-  if err != nil {
-		log.Print("ERROR While convert request to JSON: ",err)
-  }
+	// fmt.Print(cnf.Query)
+	err = json.Unmarshal([]byte(strRequestWithAuth), &Query)
+	if err != nil {
+		log.Print("ERROR While convert request to JSON: ", err)
+	}
 
 	log.Print("Connected to Zabbix API v", version)
-  return session, err
+	return session, err
 }
