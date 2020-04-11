@@ -41,23 +41,23 @@ func cleanUpName(name string) string {
 }
 
 func uniqueSlice(intSlice []string) []string {
-    keys := make(map[string]bool)
-    list := []string{}
-    for _, entry := range intSlice {
-        if _, value := keys[entry]; !value {
-            keys[entry] = true
-            list = append(list, entry)
-        }
-    }
-    return list
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
-func registerMetric(metric *prometheus.GaugeVec){
-    if cnf.StrictRegister {
-      prometheus.MustRegister(metric)
-    } else {
-      prometheus.Register(metric)
-    }
+func registerMetric(metric *prometheus.GaugeVec) {
+	if cnf.StrictRegister {
+		prometheus.MustRegister(metric)
+	} else {
+		prometheus.Register(metric)
+	}
 }
 
 func buildMetrics() {
@@ -77,87 +77,84 @@ func buildMetrics() {
 
 	var results = queryZabbix()
 
-  if cnf.MetricNameField != "" {
-    for k, result := range results {
-      cleanName := cleanUpName(result[cnf.MetricNameField].(string))
-      rawMetricNames = append(rawMetricNames, cleanName)
-      if result[cnf.MetricHelpField] != nil {
-        if result[cnf.MetricHelpField].(string) != "" {
-          rawMetricDesc = append(rawMetricDesc, result[cnf.MetricHelpField].(string))
-        }else{
-          rawMetricDesc = append(rawMetricDesc, "NA_"+strconv.Itoa(k))
-        }
-      } else {
-        rawMetricDesc = append(rawMetricDesc, "NA")
-      }
-    }
-  }
+	if cnf.MetricNameField != "" {
+		for k, result := range results {
+			cleanName := cleanUpName(result[cnf.MetricNameField].(string))
+			rawMetricNames = append(rawMetricNames, cleanName)
+			if result[cnf.MetricHelpField] != nil {
+				if result[cnf.MetricHelpField].(string) != "" {
+					rawMetricDesc = append(rawMetricDesc, result[cnf.MetricHelpField].(string))
+				} else {
+					rawMetricDesc = append(rawMetricDesc, "NA_"+strconv.Itoa(k))
+				}
+			} else {
+				rawMetricDesc = append(rawMetricDesc, "NA")
+			}
+		}
+	}
 
-  log.Println("Raw Metrics    : ", rawMetricNames)
-  log.Println("Raw Description: ", rawMetricDesc)
-  uniqMetricNames := uniqueSlice(rawMetricNames)
-  uniqMetricDesc := uniqueSlice(rawMetricDesc)
+	log.Println("Raw Metrics    : ", rawMetricNames)
+	log.Println("Raw Description: ", rawMetricDesc)
+	uniqMetricNames := uniqueSlice(rawMetricNames)
+	uniqMetricDesc := uniqueSlice(rawMetricDesc)
 
-  log.Println("Uniq Metrics    : ",uniqMetricNames)
-  log.Println("Uniq Description: ",uniqMetricDesc)
+	log.Println("Uniq Metrics    : ", uniqMetricNames)
+	log.Println("Uniq Description: ", uniqMetricDesc)
 
-  if(len(uniqMetricNames) != len(uniqMetricDesc)){
-    log.Print("WARNING: Number of Metrics and Description not equal")
+	if len(uniqMetricNames) != len(uniqMetricDesc) {
+		log.Print("WARNING: Number of Metrics and Description not equal")
 
-    if(len(uniqMetricNames) < len(uniqMetricDesc)){
-      log.Fatal("ERROR: Insufficient uniq Metrics. Try to use more unique ZE3000_METRIC_NAME_FIELD, or use ZE3000_SINGLE_METRIC_NAME=true")
-    }else{
-      log.Print("WARNING: I try to heal this by populating NA")
-      for k, _ := range uniqMetricNames{
-        uniqMetricDesc[k] = "NA"
-      }
-    }
-  }
-
+		if len(uniqMetricNames) < len(uniqMetricDesc) {
+			log.Fatal("ERROR: Insufficient uniq Metrics. Try to use more unique ZE3000_METRIC_NAME_FIELD, or use ZE3000_SINGLE_METRIC_NAME=true")
+		} else {
+			log.Print("WARNING: I try to heal this by populating NA")
+			for k, _ := range uniqMetricNames {
+				uniqMetricDesc[k] = "NA"
+			}
+		}
+	}
 
 	if cnf.SingleMetric {
-    fullName := cnf.MetricNamePrefix
+		fullName := cnf.MetricNamePrefix
 
-    itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-      Namespace: cnf.MetricNamespace,
-      Subsystem: cnf.MetricSubsystem,
-      Name:      fullName,
-      Help:      cnf.SingleMetricHelp,
-    }, labelsSlicePrometheus)
+		itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: cnf.MetricNamespace,
+			Subsystem: cnf.MetricSubsystem,
+			Name:      fullName,
+			Help:      cnf.SingleMetricHelp,
+		}, labelsSlicePrometheus)
 
-    registerMetric(itemsMetric)
-	}else{
-    for k, name := range uniqMetricNames {
-      //clean up metric name
-      fullName := cnf.MetricNamePrefix
-      if cnf.MetricNameField != "" {
-        fullName = cnf.MetricNamePrefix + "_" + name
-      }
+		registerMetric(itemsMetric)
+	} else {
+		for k, name := range uniqMetricNames {
+			//clean up metric name
+			fullName := cnf.MetricNamePrefix
+			if cnf.MetricNameField != "" {
+				fullName = cnf.MetricNamePrefix + "_" + name
+			}
 
-      itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-        Namespace: cnf.MetricNamespace,
-        Subsystem: cnf.MetricSubsystem,
-        Name:      fullName,
-        Help:      uniqMetricDesc[k],
-      }, labelsSlicePrometheus)
+			itemsMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+				Namespace: cnf.MetricNamespace,
+				Subsystem: cnf.MetricSubsystem,
+				Name:      fullName,
+				Help:      uniqMetricDesc[k],
+			}, labelsSlicePrometheus)
 
-      metricsMap[name] = itemsMetric
-    }
+			metricsMap[name] = itemsMetric
+		}
 
-    for _, metric := range metricsMap {
-      registerMetric(metric)
-    }
-  }
+		for _, metric := range metricsMap {
+			registerMetric(metric)
+		}
+	}
 
-  log.Print("Number of bject getting from Zabbix    : ", len(results))
-  if cnf.SingleMetric {
-    log.Print("Number of metrics that will be produced: ", 1)
-  } else {
-    log.Print("Number of metrics that will be produced: ", len(metricsMap))
-  }
+	log.Print("Number of bject getting from Zabbix    : ", len(results))
+	if cnf.SingleMetric {
+		log.Print("Number of metrics that will be produced: ", 1)
+	} else {
+		log.Print("Number of metrics that will be produced: ", len(metricsMap))
+	}
 }
-
-
 
 func queryZabbix() []map[string]interface{} {
 	items, err := zbx.Session.Do(zbx.Query)
@@ -167,9 +164,9 @@ func queryZabbix() []map[string]interface{} {
 
 	var results []map[string]interface{}
 	json.Unmarshal(items.Body, &results)
-  if(len(results) == 0){
-    log.Fatal("Empty response from Zabbix. Check query at ZE3000_ZABBIX_QUERY")
-  }
+	if len(results) == 0 {
+		log.Fatal("Empty response from Zabbix. Check query at ZE3000_ZABBIX_QUERY")
+	}
 	return results
 }
 
@@ -225,7 +222,7 @@ func RecordMetrics() {
 				if cnf.SingleMetric {
 					itemsMetric.With(labelsWithValues).Set(f)
 				} else {
-          cleanName := cleanUpName(result[cnf.MetricNameField].(string))
+					cleanName := cleanUpName(result[cnf.MetricNameField].(string))
 					metricsMap[cleanName].With(labelsWithValues).Set(f)
 				}
 			}

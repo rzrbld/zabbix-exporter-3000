@@ -9,7 +9,7 @@ Main limitation - one instance = one query.
 
 ### Configuration
 | Variable |	Description |	Default |
-| --- | ----- | ---- |
+| --- | --------- | ------- |
 | ZABBIX_API_ENDPOINT | full url to Zabbix API | http://zabbix/api_jsonrpc.php |
 | ZABBIX_USER | Zabbix user | admin |
 | ZABBIX_PASSWORD | Zabbix password | admin |
@@ -34,6 +34,8 @@ Main limitation - one instance = one query.
  - zabbix
  - prometheus
  - docker or k8s
+
+#### configure
 
 Make some query to zabbix server over [Insomnia](https://insomnia.rest/download/), [Postman](https://www.postman.com/), [curl](https://curl.haxx.se/), you name it. Let's say this query is:
 ``` json
@@ -100,6 +102,7 @@ and response of this query is:
 
 ```
 Since we know the query and know what is return - let's configure and start Zabbix Exporter 3000:
+ZE3000_ZABBIX_METRIC_LABELS - supports second level fields over `>` operator.
 
 ``` bash
 docker run -d \
@@ -121,8 +124,8 @@ docker run -d \
       -e ZE3000_ZABBIX_REFRESH_DELAY_SEC=20 \
       -e ZE3000_ZABBIX_METRIC_LABELS="itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns" \
       -e ZE3000_HOST_PORT=localhost:8080 \
-      -e ZE3000_ZABBIX_QUERY="{     "jsonrpc": "2.0",     "method": "item.get",     "params": {     	"application":"My Super Application",         "output": ["itemid","key_","description","lastvalue"],         "selectDependencies": "extend",         "selectHosts": ["name","status","host"],         "selectInterfaces": ["ip","dns"],         "sortfield":"key_"     },     "auth": "%auth-token%",     "id": 1 }"
-      rzrbld/adminio-api:latest
+      -e ZE3000_ZABBIX_QUERY='{     "jsonrpc": "2.0",     "method": "item.get",     "params": {     	"application":"My Super Application",         "output": ["itemid","key_","description","lastvalue"],         "selectDependencies": "extend",         "selectHosts": ["name","status","host"],         "selectInterfaces": ["ip","dns"],         "sortfield":"key_"     },     "auth": "%auth-token%",     "id": 1 }' \
+      rzrbld/ze3000:latest
 
 ```
 :boom: let's suppose everything running ok, and you don't have any error messages from ze3000 <br/><br/>

@@ -36,8 +36,8 @@ func Connect() (*zabbix.Session, error) {
 	}
 
 	authToken := session.AuthToken()
-  sToken := strings.Split(authToken, "")
-	log.Print("Auth: ", sToken[1],sToken[2],sToken[3],sToken[4],sToken[5],sToken[6])
+	sToken := strings.Split(authToken, "")
+	log.Print("Auth: ", sToken[1], sToken[2], sToken[3], sToken[4], sToken[5], sToken[6])
 	strRequestWithAuth := strings.Replace(cnf.Query, "%auth-token%", authToken, -1)
 
 	// fmt.Print(cnf.Query)
