@@ -1,7 +1,9 @@
 # zabbix-exporter-3000
- just another zabbix exporter for prometheus
+just another zabbix exporter for [Prometheus](https://prometheus.io/)
 
- like the other exporters it use Zabbix API and represent response as prometheus metrics.
+like the other exporters it use Zabbix API and represent response as [Prometheus](https://prometheus.io/) metrics.
+
+![Docker hub stats](https://img.shields.io/docker/pulls/rzrbld/ze3000?style=flat-square) ![GitHub License](https://img.shields.io/github/license/rzrbld/zabbix-exporter-3000?style=flat-square)
 
 ### Limitations:
 
@@ -144,3 +146,16 @@ megacompany_frontend_nginx_numbeofconnections{hosts_host="mega.application",host
 
 
 ```
+
+### How to build standalone binary
+
+#### requirements
+ - go 1.13+
+ - git client
+
+``` bash
+$ git clone https://github.com/rzrbld/zabbix-exporter-3000
+$ cd zabbix-exporter-3000
+$ go build main.go
+```
+after that you need to export environment variables - just like in docker stage above and run as average binary.
