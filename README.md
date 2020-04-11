@@ -10,26 +10,26 @@ like the other exporters it use Zabbix API and represent response as [Prometheus
 Main limitation - one instance = one query.
 
 ### Configuration
+
 | Variable |	Description |	Default |
 | --- | --------- | ------- |
-| ZABBIX_API_ENDPOINT | full url to Zabbix API | http://zabbix/api_jsonrpc.php |
-| ZABBIX_USER | Zabbix user | admin |
-| ZABBIX_PASSWORD | Zabbix password | admin |
-| ZABBIX_SKIP_SSL | Skip Zabbix endpoint SSL check | true |
-| ZE3000_STRICT_METRIC_REG | May be useful when you have an error about metric duplicate on registration - set this to false. On this case, you highly likely have a problem with query, but this may help you investigate. Don't set this to 'false' on real environment | true |
-| ZE3000_SINGLE_METRIC | If you, for some reason, won't use Default mechanics with mapping metric name and field from Zabbix response.  | true |
-| ZE3000_SINGLE_METRIC_HELP | Hardcoded HELP field for Single metric mechanics | single description |
-| ZE3000_HOST_PORT | which host and port exporter should listening. Supported notations - 0.0.0.0:9080 or :9080 | localhost:8080 |
-| ZE3000_METRIC_NAMESPACE | Metric namespace (part of metric name in Prometheus) | zbx |
-| ZE3000_METRIC_SUBSYSTEM | Metric subsystem (part of metric name in Prometheus) | subsystem |
-| ZE3000_METRIC_NAME_PREFIX | Metric name prefix | prefix |
-| ZE3000_METRIC_NAME_FIELD | `Mapping field.` Which field form Zabbix response use as part of a name. Please note - this field will be trimmed, set to lower case and rid off of all symbols except A-z and 0-9. `Only top level Zabbix response fields supported`  | key_ |
-| ZE3000_METRIC_VALUE | `Mapping field.` Which field form Zabbix response use as value of metric. `Only top level Zabbix response fields supported`| lastvalue |
-| ZE3000_METRIC_HELP | `Mapping field.` Which field form Zabbix response use as help field of metric. `Only top level Zabbix response fields supported` | description |
-| ZE3000_ZABBIX_METRIC_LABELS | `Mapping field.` Which field form Zabbix response use as labels. `This field supported first level and second level fields ` | name,itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns |
-| ZE3000_ZABBIX_REFRESH_DELAY_SEC | How frequent Zabbix exporter will be query Zabbix. In seconds | 10 |
-| ZE3000_ZABBIX_QUERY  | any Zabbix query, with field "auth" with value "%auth-token%" - yes, literally "%auth-token%" | ```{     "jsonrpc": "2.0",     "method": "item.get",     "params": {     	"application":"My Valuable Application",         "output": ["itemid","key_","description","lastvalue"],         "selectDependencies": "extend",         "selectHosts": ["name","status","host"],         "selectInterfaces": ["ip","dns"],         "sortfield":"key_" },     "auth": "%auth-token%",     "id": 1 }``` |
-
+| <sub>ZABBIX_API_ENDPOINT</sub> | full url to Zabbix API | http://zabbix/api_jsonrpc.php |
+| <sub>ZABBIX_USER</sub> | Zabbix user | admin |
+| <sub>ZABBIX_PASSWORD</sub> | Zabbix password | admin |
+| <sub>ZABBIX_SKIP_SSL</sub> | Skip Zabbix endpoint SSL check | true |
+| <sub>ZE3000_STRICT_METRIC_REG</sub> | May be useful when you have an error about metric duplicate on registration - set this to false. On this case, you highly likely have a problem with query, but this may help you investigate. Don't set this to 'false' on real environment | true |
+| <sub>ZE3000_SINGLE_METRIC</sub> | If you, for some reason, won't use Default mechanics with mapping metric name and field from Zabbix response.  | true |
+| <sub>ZE3000_SINGLE_METRIC_HELP</sub> | Hardcoded HELP field for Single metric mechanics | single description |
+| <sub>ZE3000_HOST_PORT</sub> | which host and port exporter should listening. Supported notations - 0.0.0.0:9080 or :9080 | localhost:8080 |
+| <sub>ZE3000_METRIC_NAMESPACE</sub> | Metric namespace (part of metric name in Prometheus) | zbx |
+| <sub>ZE3000_METRIC_SUBSYSTEM</sub> | Metric subsystem (part of metric name in Prometheus) | subsystem |
+| <sub>ZE3000_METRIC_NAME_PREFIX</sub> | Metric name prefix | prefix |
+| <sub>ZE3000_METRIC_NAME_FIELD</sub> | `Mapping field.` Which field form Zabbix response use as part of a name. Please note - this field will be trimmed, set to lower case and rid off of all symbols except A-z and 0-9. `Only top level Zabbix response fields supported`  | key_ |
+| <sub>ZE3000_METRIC_VALUE</sub> | `Mapping field.` Which field form Zabbix response use as value of metric. `Only top level Zabbix response fields supported`| lastvalue |
+| <sub>ZE3000_METRIC_HELP</sub> | `Mapping field.` Which field form Zabbix response use as help field of metric. `Only top level Zabbix response fields supported` | description |
+| <sub>ZE3000_ZABBIX_METRIC_LABELS</sub> | `Mapping field.` Which field form Zabbix response use as labels. `This field supported first level and second level fields ` | name,<br>itemid,<br>key_,<br>hosts>host,<br>hosts>name,<br>interfaces>ip,<br>interface>dns |
+| <sub>ZE3000_ZABBIX_REFRESH_DELAY_SEC</sub> | How frequent Zabbix exporter will be query Zabbix. In seconds | 10 |
+| <sub>ZE3000_ZABBIX_QUERY</sub>  | any Zabbix query, with field "auth" with value "%auth-token%" - yes, literally `"%auth-token%"` |{"jsonrpc": "2.0",<br>"method": "item.get",<br>     "params": {<br>     	"application":"My Valuable Application",<br>         "output":["itemid","key_","description","lastvalue"],<br>         "selectDependencies": "extend",<br>         "selectHosts": ["name","status","host"],<br>         "selectInterfaces": ["ip","dns"],<br>         "sortfield":"key_" },<br>     "auth": "%auth-token%",<br>     "id": 1 } |
 
 ### How-to use
 #### requirements
