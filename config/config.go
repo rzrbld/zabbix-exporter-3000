@@ -4,6 +4,7 @@ import (
 	"os"
 	strconv "strconv"
 	"strings"
+  "log"
 )
 
 var (
@@ -33,8 +34,11 @@ func getEnv(key, fallback string) string {
 	value, exist := os.LookupEnv(key)
 
 	if !exist {
+    log.Print("Config ", key, ": ", fallback)
 		return fallback
 	}
-
+  if(key != "ZABBIX_PASSWORD"){
+    log.Print("Config ", key, ": ", value)
+  }
 	return value
 }

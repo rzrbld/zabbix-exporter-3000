@@ -30,6 +30,7 @@ var uniqMetricDesc []string
 var itemsMetric *prometheus.GaugeVec
 var metricsMap = make(map[string]*prometheus.GaugeVec, 1000)
 
+//helpers
 func cleanUpName(name string) string {
 	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
 	if err != nil {
@@ -70,12 +71,11 @@ func buildMetrics() {
 		}
 	}
 
-	log.Print("labels_prom   :", labelsSlicePrometheus)
-	log.Print("labels_complex:", labelsSliceComplex)
-	log.Print("labels_average:", labelsSliceAvg)
+	log.Print("Labels that will be produced      :", labelsSlicePrometheus)
+	log.Print("Complex labels that will be parsed:", labelsSliceComplex)
+	log.Print("Plain labels that will be parsed  :", labelsSliceAvg)
 
 	var results = queryZabbix()
-	log.Print("Zabbix_len:", len(results))
 
   if cnf.MetricNameField != "" {
     for k, result := range results {
@@ -93,19 +93,19 @@ func buildMetrics() {
     }
   }
 
-  log.Println(rawMetricNames)
-  log.Println(rawMetricDesc)
+  log.Println("Raw Metrics    : ", rawMetricNames)
+  log.Println("Raw Description: ", rawMetricDesc)
   uniqMetricNames := uniqueSlice(rawMetricNames)
   uniqMetricDesc := uniqueSlice(rawMetricDesc)
 
-  log.Println(uniqMetricNames)
-  log.Println(uniqMetricDesc)
+  log.Println("Uniq Metrics    : ",uniqMetricNames)
+  log.Println("Uniq Description: ",uniqMetricDesc)
 
   if(len(uniqMetricNames) != len(uniqMetricDesc)){
     log.Print("WARNING: Number of Metrics and Description not equal")
 
     if(len(uniqMetricNames) < len(uniqMetricDesc)){
-      log.Fatal("ERROR: Insufficient uniq Metrics")
+      log.Fatal("ERROR: Insufficient uniq Metrics. Try to use more unique ZE3000_METRIC_NAME_FIELD, or use ZE3000_SINGLE_METRIC_NAME=true")
     }else{
       log.Print("WARNING: I try to heal this by populating NA")
       for k, _ := range uniqMetricNames{
@@ -114,7 +114,6 @@ func buildMetrics() {
     }
   }
 
-	log.Print("Metrics_len:", len(metricsMap))
 
 	if cnf.SingleMetricName {
     fullName := cnf.MetricNamePrefix
@@ -149,7 +148,16 @@ func buildMetrics() {
       registerMetric(metric)
     }
   }
+
+  log.Print("Number of bject getting from Zabbix    : ", len(results))
+  if cnf.SingleMetricName {
+    log.Print("Number of metrics that will be produced: ", 1)
+  } else {
+    log.Print("Number of metrics that will be produced: ", len(metricsMap))
+  }
 }
+
+
 
 func queryZabbix() []map[string]interface{} {
 	items, err := zbx.Session.Do(zbx.Query)
@@ -159,6 +167,9 @@ func queryZabbix() []map[string]interface{} {
 
 	var results []map[string]interface{}
 	json.Unmarshal(items.Body, &results)
+  if(len(results) == 0){
+    log.Fatal("Empty response from Zabbix. Check query at ZE3000_ZABBIX_QUERY")
+  }
 	return results
 }
 

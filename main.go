@@ -17,7 +17,7 @@ func main() {
 
 	fmt.Println("\033[31m\r\n\r\n\r\n███████╗███████╗██████╗  ██████╗  ██████╗  ██████╗ \r\n╚══███╔╝██╔════╝╚════██╗██╔═████╗██╔═████╗██╔═████╗ \r\n  ███╔╝ █████╗   █████╔╝██║██╔██║██║██╔██║██║██╔██║ \r\n ███╔╝  ██╔══╝   ╚═══██╗████╔╝██║████╔╝██║████╔╝██║ \r\n███████╗███████╗██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝ \r\n╚══════╝╚══════╝╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝  \r\n\033[m")
 	fmt.Println("\033[33mZabbix Exporter for Prometheus")
-	fmt.Println("version  : 0.1 ")
+	fmt.Println("version  : 0.1 Alpha")
 	fmt.Println("Author   : rzrbld")
 	fmt.Println("License  : MIT")
 	fmt.Println("Git-repo : https://github.com/rzrbld/zabbix-exporter-3000 \033[m \r\n")
