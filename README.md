@@ -115,7 +115,6 @@ docker run -d \
       -e ZABBIX_SKIP_SSL=true \
       -e ZE3000_STRICT_METRIC_REG=true \
       -e ZE3000_METRIC_NAME_FIELD="key_" \
-      -e ZABBIX_SKIP_SSL=true \
       -e ZE3000_SINGLE_METRIC=false \
       -e ZE3000_METRIC_NAMESPACE="megacompany" \
       -e ZE3000_METRIC_SUBSYSTEM="frontend" \
