@@ -15,6 +15,7 @@ FROM alpine:3.11
 
 EXPOSE 8080
 RUN mkdir /main && chmod 777 /main
+WORKDIR /main
 
 COPY --from=0 /go/bin/ze3000 /main/ze3000
 

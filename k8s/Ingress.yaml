@@ -1,0 +1,15 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: ze3000-ingress
+  labels:
+    app: ze3000
+spec:
+  rules:
+    - host: zabbix-exporter.my-cluster.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ze3000-service
+              servicePort: 9000

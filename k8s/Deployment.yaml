@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-exporter-3000
+  labels:
+    app: ze3000
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ze3000
+  template:
+    metadata:
+      labels:
+        app: ze3000
+    spec:
+      containers:
+      - name: ze3000
+        image: rzrbld/ze3000:latest
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: ZABBIX_API_ENDPOINT
+          value: https://zabbix.example.com/zabbix/api_jsonrpc.php
+        - name: ZABBIX_USER
+          value: someuser
+        - name: ZABBIX_PASSWORD
+          value: str0nGpA5sw0rd
+        - name: ZABBIX_SKIP_SSL
+          value: "true"
+        - name: ZE3000_STRICT_METRIC_REG
+          value: "true"
+        - name: ZE3000_METRIC_NAME_FIELD
+          value: "key_"
+        - name: ZE3000_SINGLE_METRIC
+          value: "false"
+        - name: ZE3000_METRIC_NAMESPACE
+          value: "megacompany"
+        - name: ZE3000_METRIC_SUBSYSTEM
+          value: "frontend"
+        - name: ZE3000_METRIC_NAME_PREFIX
+          value: "nginx"
+        - name: ZE3000_METRIC_NAME_FIELD
+          value: "key_"
+        - name: ZE3000_METRIC_VALUE
+          value: "lastvalue"
+        - name: ZE3000_METRIC_HELP
+          value: "description"
+        - name: ZE3000_ZABBIX_REFRESH_DELAY_SEC
+          value: 20
+        - name: ZE3000_ZABBIX_METRIC_LABELS
+          value: "itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns"
+        - name: ZE3000_HOST_PORT
+          value: 0.0.0.0:8080
+        - name: ZE3000_ZABBIX_QUERY
+      	  value: '{"jsonrpc": "2.0","method": "item.get","params": {"application":"My Super Application","output": ["itemid","key_","description","lastvalue"],"selectDependencies": "extend","selectHosts": ["name","status","host"],"selectInterfaces": ["ip","dns"],"sortfield":"key_"},"auth": "%auth-token%","id": 1 }'
+      ports:
+      - containerPort: 8080
