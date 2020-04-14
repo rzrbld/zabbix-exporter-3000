@@ -38,7 +38,7 @@ Main limitation - one instance = one query.
  - prometheus
  - docker or k8s
 
-#### configure
+#### description
 
 Make some query to zabbix server over [Insomnia](https://insomnia.rest/download/), [Postman](https://www.postman.com/), [curl](https://curl.haxx.se/), you name it. Let's say this query is:
 ``` json
@@ -104,8 +104,11 @@ and response of this query is:
 }
 
 ```
+#### configure and run
 Since we know the query and know what is return - let's configure and start Zabbix Exporter 3000:
 ZE3000_ZABBIX_METRIC_LABELS - supports second level fields over `>` operator.
+
+#### docker run
 
 ``` bash
 docker run -d \
@@ -147,6 +150,9 @@ megacompany_frontend_nginx_numbeofconnections{hosts_host="mega.application",host
 
 
 ```
+#### kubernetes run
+
+Look at example deployments at `k8s` folder in this repo.
 
 ### How to build standalone binary
 
