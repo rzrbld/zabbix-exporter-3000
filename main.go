@@ -34,7 +34,7 @@ func main() {
 	m := prometheusMiddleware.New("ze3000", 0.3, 1.2, 5.0)
 	hdl.RecordMetrics()
 	app.Use(m.ServeHTTP)
-	app.Get("/metrics", iris.FromStd(promhttp.Handler()))
+	app.Get(cnf.MetricUriPath, iris.FromStd(promhttp.Handler()))
 
 	app.Get("/liveness", func(ctx iris.Context) {
 		ctx.WriteString("ok")

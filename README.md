@@ -28,6 +28,7 @@ Main limitation - one instance = one query.
 | <sub>ZE3000_METRIC_VALUE</sub> | `Mapping field.` Which field form Zabbix response use as value of metric. `Only top level Zabbix response fields supported`| lastvalue |
 | <sub>ZE3000_METRIC_HELP</sub> | `Mapping field.` Which field form Zabbix response use as help field of metric. `Only top level Zabbix response fields supported` | description |
 | <sub>ZE3000_ZABBIX_METRIC_LABELS</sub> | `Mapping field.` Which field form Zabbix response use as labels. `This field supported first level and second level fields ` | name,<br>itemid,<br>key_,<br>hosts>host,<br>hosts>name,<br>interfaces>ip,<br>interface>dns |
+| <sub>ZE3000_METRIC_URI_PATH</sub> | uri path where prometheus can consume metrics | /metrics |
 | <sub>ZE3000_ZABBIX_REFRESH_DELAY_SEC</sub> | How frequent Zabbix exporter will be query Zabbix. In seconds | 10 |
 | <sub>ZE3000_ZABBIX_QUERY</sub>  | any Zabbix query, with field "auth" with value "%auth-token%" - yes, literally `"%auth-token%"` |{"jsonrpc": "2.0",<br>"method": "item.get",<br>     "params": {<br>     	"application":"My Valuable Application",<br>         "output":["itemid","key_","description","lastvalue"],<br>         "selectDependencies": "extend",<br>         "selectHosts": ["name","status","host"],<br>         "selectInterfaces": ["ip","dns"],<br>         "sortfield":"key_" },<br>     "auth": "%auth-token%",<br>     "id": 1 } |
 
@@ -122,6 +123,7 @@ docker run -d \
       -e ZE3000_METRIC_NAME_FIELD="key_" \
       -e ZE3000_METRIC_VALUE="lastvalue" \
       -e ZE3000_METRIC_HELP="description" \
+      -e ZE3000_METRIC_URI_PATH="/my-metrics"
       -e ZE3000_ZABBIX_REFRESH_DELAY_SEC=20 \
       -e ZE3000_ZABBIX_METRIC_LABELS="itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns" \
       -e ZE3000_HOST_PORT=localhost:8080 \
@@ -130,14 +132,14 @@ docker run -d \
 
 ```
 :boom: let's suppose everything running ok, and you don't have any error messages from ze3000 <br/><br/>
-ze3000 brings up next endpoints:
-- `/metrics` - main and exported metrics
+by default ze3000 brings up next endpoints:
+- `/metrics` - main and exported metrics (you can change it over ZE3000_METRIC_URI_PATH environment variable. In exampe above this env variable set to `/my-metrics`)
 - `/ready` - readiness probe for k8s monitoring
 - `/live` - liveness probe for k8s monitoring
 
-Let's se at `/metrics`
+Let's se at `/my-metrics`
 ``` bash
-$ curl http://localhost:8080/metrics
+$ curl http://localhost:8080/my-metrics
 ...
 megacompany_frontend_nginx_concurrencyconnections{hosts_host="mighty.fronend",hosts_name="Mighty Frontend",interface_dns="NA",interfaces_ip="10.4.4.3",itemid="452345",key_="concurrencyConnections"} 9
 ...

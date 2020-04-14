@@ -49,6 +49,8 @@ spec:
           value: "key_"
         - name: ZE3000_METRIC_VALUE
           value: "lastvalue"
+        - name: ZE3000_METRIC_URI_PATH
+          value: "/metrics"
         - name: ZE3000_METRIC_HELP
           value: "description"
         - name: ZE3000_ZABBIX_REFRESH_DELAY_SEC

@@ -25,6 +25,7 @@ var (
 	MetricNameField  = getEnv("ZE3000_METRIC_NAME_FIELD", "key_")
 	MetricValue      = getEnv("ZE3000_METRIC_VALUE", "lastvalue")
 	MetricHelpField  = getEnv("ZE3000_METRIC_HELP", "description")
+	MetricUriPath    = getEnv("ZE3000_METRIC_URI_PATH", "/metrics")
 	SourceRefresh    = getEnv("ZE3000_ZABBIX_REFRESH_DELAY_SEC", "10")
 	MetricLabels     = strings.TrimSpace(getEnv("ZE3000_ZABBIX_METRIC_LABELS", "name,itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns"))
 	Query            = getEnv("ZE3000_ZABBIX_QUERY", `{     "jsonrpc": "2.0",     "method": "item.get",     "params": {     	"application":"My Super Application",         "output": ["itemid","key_","description","lastvalue"],         "selectDependencies": "extend",         "selectHosts": ["name","status","host"],         "selectInterfaces": ["ip","dns"],         "sortfield":"key_"     },     "auth": "%auth-token%",     "id": 1 }`)
