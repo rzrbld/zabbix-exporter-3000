@@ -14,6 +14,8 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 main
+runc-vpn.sh
+runc-nk.sh
 runc.sh
 rund.sh
 test.sh

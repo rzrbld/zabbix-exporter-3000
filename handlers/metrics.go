@@ -109,7 +109,7 @@ func buildMetrics() {
 		} else {
 			log.Print("WARNING: I try to heal this by populating NA")
 			for k, _ := range uniqMetricNames {
-				uniqMetricDesc[k] = "NA"
+				uniqMetricDesc = append(uniqMetricDesc, "NA_"+strconv.Itoa(k))
 			}
 		}
 	}
