@@ -52,12 +52,22 @@ spec:
         - name: ZE3000_METRIC_HELP
           value: "description"
         - name: ZE3000_ZABBIX_REFRESH_DELAY_SEC
-          value: 20
+          value: "20"
         - name: ZE3000_ZABBIX_METRIC_LABELS
           value: "itemid,key_,hosts>host,hosts>name,interfaces>ip,interface>dns"
         - name: ZE3000_HOST_PORT
           value: 0.0.0.0:8080
         - name: ZE3000_ZABBIX_QUERY
-      	  value: '{"jsonrpc": "2.0","method": "item.get","params": {"application":"My Super Application","output": ["itemid","key_","description","lastvalue"],"selectDependencies": "extend","selectHosts": ["name","status","host"],"selectInterfaces": ["ip","dns"],"sortfield":"key_"},"auth": "%auth-token%","id": 1 }'
+          value: >-
+                  {"jsonrpc":"2.0",
+                  "method":"item.get",
+                  "params":{"application":"My Super Application",
+                  "output":["itemid","key_","description","lastvalue"],
+                  "selectDependencies":"extend",
+                  "selectHosts":["name","status","host"],
+                  "selectInterfaces":["ip","dns"],
+                  "sortfield":"key_"},
+                  "auth":"%auth-token%",
+                  "id":1}
       ports:
       - containerPort: 8080
