@@ -17,7 +17,7 @@ func main() {
 
 	fmt.Println("\033[31m\r\n\r\n\r\n███████╗███████╗██████╗  ██████╗  ██████╗  ██████╗ \r\n╚══███╔╝██╔════╝╚════██╗██╔═████╗██╔═████╗██╔═████╗ \r\n  ███╔╝ █████╗   █████╔╝██║██╔██║██║██╔██║██║██╔██║ \r\n ███╔╝  ██╔══╝   ╚═══██╗████╔╝██║████╔╝██║████╔╝██║ \r\n███████╗███████╗██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝ \r\n╚══════╝╚══════╝╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝  \r\n\033[m")
 	fmt.Println("\033[33mZabbix Exporter for Prometheus")
-	fmt.Println("version  : 0.1 Alpha")
+	fmt.Println("version  : 0.5")
 	fmt.Println("Author   : rzrbld")
 	fmt.Println("License  : MIT")
 	fmt.Println("Git-repo : https://github.com/rzrbld/zabbix-exporter-3000 \033[m \r\n")
@@ -42,6 +42,10 @@ func main() {
 
 	app.Get("/readiness", func(ctx iris.Context) {
 		ctx.WriteString("ok")
+	})
+
+	app.Get("/", func(ctx iris.Context) {
+		ctx.WriteString("zabbix-exporter-3000")
 	})
 
 	app.Run(iris.Addr(cnf.MainHostPort), iris.WithoutServerError(iris.ErrServerClosed))

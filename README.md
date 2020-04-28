@@ -136,7 +136,7 @@ docker run -d \
 ```
 :boom: let's suppose everything running ok, and you don't have any error messages from ze3000 <br/><br/>
 by default ze3000 brings up next endpoints:
-- `/metrics` - main and exported metrics (you can change it over ZE3000_METRIC_URI_PATH environment variable. In exampe above this env variable set to `/my-metrics`)
+- `/metrics` - main and exported metrics (you can change it over ZE3000_METRIC_URI_PATH environment variable. In example above this env variable set to `/my-metrics`)
 - `/ready` - readiness probe for k8s monitoring
 - `/live` - liveness probe for k8s monitoring
 
